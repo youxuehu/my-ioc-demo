@@ -13,7 +13,7 @@ import com.tiger.ioc.annotation.Value;
  * @desrription 这是类的描述信息
  */
 @Component
-public class Person {
+public class Person extends ToString {
 
     @Value("jack")
     private String name;
@@ -49,12 +49,4 @@ public class Person {
         this.order = order;
     }
 
-    @Override
-    public String toString() {
-        return "Person{" +
-                "name='" + name + '\'' +
-                ", age=" + age +
-                ", order=" + order +
-                '}';
-    }
 }

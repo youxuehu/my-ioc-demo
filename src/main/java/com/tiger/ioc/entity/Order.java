@@ -11,7 +11,7 @@ import com.tiger.ioc.annotation.Value;
  * @desrription 这是类的描述信息
  */
 @Component
-public class Order {
+public class Order extends ToString {
     @Value("123")
     private Integer orderId;
     @Value("10000.0")
@@ -43,12 +43,4 @@ public class Order {
         this.orderName = orderName;
     }
 
-    @Override
-    public String toString() {
-        return "Order{" +
-                "orderId=" + orderId +
-                ", price=" + price +
-                ", orderName='" + orderName + '\'' +
-                '}';
-    }
 }

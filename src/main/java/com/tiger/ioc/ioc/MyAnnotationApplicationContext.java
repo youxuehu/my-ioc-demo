@@ -4,6 +4,7 @@ import com.tiger.ioc.annotation.Autowired;
 import com.tiger.ioc.annotation.Component;
 import com.tiger.ioc.annotation.Qualifier;
 import com.tiger.ioc.annotation.Value;
+import com.tiger.ioc.utils.DateUtils;
 import org.apache.commons.lang.StringUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
@@ -14,6 +15,8 @@ import org.reflections.scanners.TypeAnnotationsScanner;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,17 +54,30 @@ public class MyAnnotationApplicationContext {
                 try {
                     Autowired autowiredAnnotation = declaredField.getAnnotation(Autowired.class);
                     if (autowiredAnnotation != null) {
+                        String fieldName = declaredField.getName();
+                        String methodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+                        if (StringUtils.startsWith(fieldName, "is")) {
+                            methodName = "set" + fieldName.substring(2);
+                        }
+                        Method method = clazz.getMethod(methodName, declaredField.getType());
                         // byName
                         Qualifier qualifierAnnotation = declaredField.getAnnotation(Qualifier.class);
                         if (qualifierAnnotation != null) {
                             String value = qualifierAnnotation.value();
                             Object bean = getBean(value);
-                            String fieldName = declaredField.getName();
-                            String methodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
-                            Method method = clazz.getMethod(methodName, declaredField.getType());
+
                             method.invoke(getBean(beanDefinition.getBeanName()), bean);
                         } else {
                             // byType
+                            for (Map.Entry<String, Object> entry : this.ioc.entrySet()) {
+                                Object obj = entry.getValue();
+                                Class<?> currFieldClass = declaredField.getType();
+                                Class<?> currClass = obj.getClass();
+                                if (currFieldClass == currClass) {
+                                    method.invoke(getBean(beanDefinition.getBeanName()), obj);
+                                    break;
+                                }
+                            }
                         }
                     }
                 } catch (NoSuchMethodException e) {
@@ -118,6 +134,9 @@ public class MyAnnotationApplicationContext {
                     }
                     String fieldName = field.getName();
                     String methodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+                    if (StringUtils.startsWith(fieldName, "is")) {
+                        methodName = "set" + fieldName.substring(2);
+                    }
                     Method method = clazz.getMethod(methodName, field.getType());
                     Object val = null;
 
@@ -133,6 +152,16 @@ public class MyAnnotationApplicationContext {
                             break;
                         case "java.lang.Double":
                             val = Double.valueOf(value);
+                            break;
+                        case "java.lang.Long":
+                            val = Long.valueOf(value);
+                            break;
+                        case "java.lang.Boolean":
+                            val = Boolean.valueOf(value);
+                            break;
+                        case "java.util.Date":
+                            LocalDate localDate = LocalDate.parse(value, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:ss:mm"));
+                            val = DateUtils.localDate2Date(localDate);
                             break;
                     }
                     method.invoke(object, val);

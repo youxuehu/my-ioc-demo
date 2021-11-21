@@ -15,7 +15,7 @@ public class IocMain {
 
         MyAnnotationApplicationContext app = new MyAnnotationApplicationContext("com.tiger.ioc.entity");
 
-        Object person = app.getBean("person");
-        System.out.println(person);
+        Object executionRecord = app.getBean("executionRecord");
+        System.out.println(executionRecord);
     }
 }
